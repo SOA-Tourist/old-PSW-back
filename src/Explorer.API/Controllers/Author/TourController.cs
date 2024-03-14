@@ -6,6 +6,8 @@ using FluentResults;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using System.Net.Http;
+using System.Text;
 using System.Threading;
 
 namespace Explorer.API.Controllers.Author
@@ -64,17 +66,24 @@ namespace Explorer.API.Controllers.Author
         [HttpPost]
         public async Task<ActionResult<TourDto>> Create([FromBody] TourDto tour)
         {
-           // var result = _tourService.Create(tour);
-           // return CreateResponse(result);
-            using (HttpClient client = new())
+            using (HttpClient client = new HttpClient())
             {
                 try
                 {
-                    string url = "http://localhost:8081/api/sales";
-                    StringContent content = new StringContent(JsonConvert.SerializeObject(tour), System.Text.Encoding.UTF8, "application/json");
-                   
-                    HttpResponseMessage response = await client.PostAsync(url, content);
+                    string url = "http://localhost:8081/api/tours";
 
+                    // Serialize TourDto to a JSON string
+                    string jsonString = JsonConvert.SerializeObject(tour);
+
+                    // Create StringContent from the JSON string
+                    //StringContent content = new StringContent(jsonString, System.Text.Encoding.UTF8, "application/json");
+                    //StringContent content = new StringContent(JsonConvert.SerializeObject(tour), System.Text.Encoding.UTF8, "application/json");
+                    //StringContent content = new StringContent(JsonConvert.SerializeObject(tour), Encoding.UTF8, "application/json");
+                    var response = await client.PostAsJsonAsync(url, tour);
+
+
+                    // Make the POST request
+                    //HttpResponseMessage response = await client.PostAsync(url, content);
 
                     if (response.IsSuccessStatusCode)
                     {
@@ -85,17 +94,17 @@ namespace Explorer.API.Controllers.Author
                     else
                     {
                         Console.WriteLine("Error: " + response.StatusCode);
-                        return CreateResponse(Result.Fail("Bice bolje"));
+                        return CreateResponse(Result.Fail("An error occurred"));
                     }
                 }
                 catch (Exception ex)
                 {
                     Console.WriteLine("Exception: " + ex.Message);
-                    return CreateResponse(Result.Fail(FailureCode.InvalidArgument).WithError(ex.Message));
+                    return CreateResponse(Result.Fail("An error occurred").WithError(ex.Message));
                 }
             }
-
         }
+
 
         [HttpPost("addCheckpoint")]
         public ActionResult<CheckpointDto> AddCheckpointOnTour([FromBody] CheckpointDto checkpointDto)
