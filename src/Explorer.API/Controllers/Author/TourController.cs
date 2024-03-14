@@ -2,8 +2,11 @@
 using Explorer.Stakeholders.Infrastructure.Authentication;
 using Explorer.Tours.API.Dtos;
 using Explorer.Tours.API.Public.Author;
+using FluentResults;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
+using System.Threading;
 
 namespace Explorer.API.Controllers.Author
 {
@@ -59,10 +62,39 @@ namespace Explorer.API.Controllers.Author
         }
 
         [HttpPost]
-        public ActionResult<TourDto> Create([FromBody] TourDto tour)
+        public async Task<ActionResult<TourDto>> Create([FromBody] TourDto tour)
         {
-            var result = _tourService.Create(tour);
-            return CreateResponse(result);
+           // var result = _tourService.Create(tour);
+           // return CreateResponse(result);
+            using (HttpClient client = new())
+            {
+                try
+                {
+                    string url = "http://localhost:8081/api/sales";
+                    StringContent content = new StringContent(JsonConvert.SerializeObject(tour), System.Text.Encoding.UTF8, "application/json");
+                   
+                    HttpResponseMessage response = await client.PostAsync(url, content);
+
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        string responseContent = await response.Content.ReadAsStringAsync();
+                        Console.WriteLine("Response from server: " + responseContent);
+                        return CreateResponse(Result.Ok(response));
+                    }
+                    else
+                    {
+                        Console.WriteLine("Error: " + response.StatusCode);
+                        return CreateResponse(Result.Fail("Bice bolje"));
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Exception: " + ex.Message);
+                    return CreateResponse(Result.Fail(FailureCode.InvalidArgument).WithError(ex.Message));
+                }
+            }
+
         }
 
         [HttpPost("addCheckpoint")]
