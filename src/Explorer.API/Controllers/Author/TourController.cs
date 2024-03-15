@@ -5,10 +5,13 @@ using Explorer.Tours.API.Public.Author;
 using FluentResults;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
 using Newtonsoft.Json;
 using System.Net.Http;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
+using System.Xml.Linq;
 
 namespace Explorer.API.Controllers.Author
 {
@@ -34,10 +37,35 @@ namespace Explorer.API.Controllers.Author
 
         [HttpGet("authortours")]
         [AllowAnonymous]
-        public ActionResult<PagedResult<TourDto>> GetAllAuthorTours([FromQuery] int authorId, [FromQuery] int page, [FromQuery] int pageSize)
+        public async Task<ActionResult<PagedResult<TourDto>>> GetAllAuthorTours([FromQuery] int authorId, [FromQuery] int page, [FromQuery] int pageSize)
         {
-            var result = _tourService.GetByAuthorId(authorId, page, pageSize);
-            return CreateResponse(result);
+            using (HttpClient client = new HttpClient())
+            {
+                string url = "http://localhost:8081/api/tours/for_author/" + authorId;
+                try
+                {
+                    var response = await client.GetAsync(url);
+                 
+                    if (response.IsSuccessStatusCode)
+                    {
+                         
+                        var responseData = await response.Content.ReadFromJsonAsync<List<TourDto>>();
+                        var pagedResult = new PagedResult<TourDto>(responseData, responseData.Count);
+
+                        return Ok(pagedResult);
+
+
+                    }
+                    else
+                    {
+                        return StatusCode((int)response.StatusCode, "Error calling the Spring microservice");
+                    }
+                }
+                catch (HttpRequestException ex)
+                {
+                    return StatusCode(500, $"Request to microservice failed: {ex.Message}");
+                }
+            }
         }
 
         [HttpGet("singletour")]
