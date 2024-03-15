@@ -37,7 +37,7 @@ namespace Explorer.API.Controllers.Author
 
         [HttpGet("authortours")]
         [AllowAnonymous]
-        public async Task<ActionResult<PagedResult<TourDto>>> GetAllAuthorTours([FromQuery] int authorId, [FromQuery] int page, [FromQuery] int pageSize)
+        public async Task<ActionResult<PagedResult<TourStringDto>>> GetAllAuthorTours([FromQuery] int authorId, [FromQuery] int page, [FromQuery] int pageSize)
         {
             using (HttpClient client = new HttpClient())
             {
@@ -49,8 +49,8 @@ namespace Explorer.API.Controllers.Author
                     if (response.IsSuccessStatusCode)
                     {
                          
-                        var responseData = await response.Content.ReadFromJsonAsync<List<TourDto>>();
-                        var pagedResult = new PagedResult<TourDto>(responseData, responseData.Count);
+                        var responseData = await response.Content.ReadFromJsonAsync<List<TourStringDto>>();
+                        var pagedResult = new PagedResult<TourStringDto>(responseData, responseData.Count);
 
                         return Ok(pagedResult);
 
