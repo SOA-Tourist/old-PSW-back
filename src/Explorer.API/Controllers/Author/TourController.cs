@@ -2,6 +2,7 @@
 using Explorer.Stakeholders.Infrastructure.Authentication;
 using Explorer.Tours.API.Dtos;
 using Explorer.Tours.API.Public.Author;
+using Explorer.Tours.Core.Domain.Tours;
 using FluentResults;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -37,7 +38,7 @@ namespace Explorer.API.Controllers.Author
 
         [HttpGet("authortours")]
         [AllowAnonymous]
-        public async Task<ActionResult<PagedResult<TourStringDto>>> GetAllAuthorTours([FromQuery] int authorId, [FromQuery] int page, [FromQuery] int pageSize)
+        public async Task<ActionResult<PagedResult<TourDto>>> GetAllAuthorTours([FromQuery] int authorId, [FromQuery] int page, [FromQuery] int pageSize)
         {
             using (HttpClient client = new HttpClient())
             {
@@ -49,8 +50,8 @@ namespace Explorer.API.Controllers.Author
                     if (response.IsSuccessStatusCode)
                     {
                          
-                        var responseData = await response.Content.ReadFromJsonAsync<List<TourStringDto>>();
-                        var pagedResult = new PagedResult<TourStringDto>(responseData, responseData.Count);
+                        var responseData = await response.Content.ReadFromJsonAsync<List<TourDto>>();
+                        var pagedResult = new PagedResult<TourDto>(responseData, responseData.Count);
 
                         return Ok(pagedResult);
 
@@ -82,11 +83,35 @@ namespace Explorer.API.Controllers.Author
         }
 
         [HttpPut("updatetour")]
-        public ActionResult<TourDto> Update([FromBody] TourDto tourDto)
+        public async Task<ActionResult<TourDto>> Update([FromBody] TourDto tourDto)
         {
 
-            var result = _tourService.Update(tourDto);
-            return CreateResponse(result);
+            using (HttpClient client = new HttpClient())
+            {
+                try
+                {
+                    string url = "http://localhost:8081/api/tours";
+                    string jsonString = JsonConvert.SerializeObject(tourDto);
+                    var response = await client.PutAsJsonAsync(url, tourDto);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        string responseContent = await response.Content.ReadAsStringAsync();
+                        Console.WriteLine("Response from server: " + responseContent);
+                        return CreateResponse(Result.Ok(response));
+                    }
+                    else
+                    {
+                        Console.WriteLine("Error: " + response.StatusCode);
+                        return CreateResponse(Result.Fail("An error occurred"));
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Exception: " + ex.Message);
+                    return CreateResponse(Result.Fail("An error occurred").WithError(ex.Message));
+                }
+            }
 
 
         }
@@ -99,19 +124,8 @@ namespace Explorer.API.Controllers.Author
                 try
                 {
                     string url = "http://localhost:8081/api/tours";
-
-                    // Serialize TourDto to a JSON string
                     string jsonString = JsonConvert.SerializeObject(tour);
-
-                    // Create StringContent from the JSON string
-                    //StringContent content = new StringContent(jsonString, System.Text.Encoding.UTF8, "application/json");
-                    //StringContent content = new StringContent(JsonConvert.SerializeObject(tour), System.Text.Encoding.UTF8, "application/json");
-                    //StringContent content = new StringContent(JsonConvert.SerializeObject(tour), Encoding.UTF8, "application/json");
                     var response = await client.PostAsJsonAsync(url, tour);
-
-
-                    // Make the POST request
-                    //HttpResponseMessage response = await client.PostAsync(url, content);
 
                     if (response.IsSuccessStatusCode)
                     {
