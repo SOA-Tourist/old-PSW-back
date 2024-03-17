@@ -106,15 +106,15 @@ namespace Explorer.API.Controllers.Author
             }
         }
 
-        [HttpPut("archiveTour")]
-        public async Task<ActionResult<TourStringDto>> ArchiveTour([FromBody] int tourId)
+        [HttpPut("archiveTour/{tourId}")]
+        public async Task<ActionResult<TourStringDto>> ArchiveTour(string tourId)
         {
             using (HttpClient client = new HttpClient())
             {
                 try
                 {
                     string url = "http://localhost:8081/api/tours/archive/" + tourId;
-                    TourDto prenos = new TourDto();
+                    TourStringDto prenos = new TourStringDto();
                     prenos.Id = tourId;
                     string jsonString = JsonConvert.SerializeObject(prenos);
                     var response = await client.PutAsJsonAsync(url, prenos);
