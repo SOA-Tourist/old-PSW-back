@@ -75,11 +75,9 @@ namespace Explorer.API.Controllers.Author
             return CreateResponse(result);
         }
 
-        [HttpGet("singletour/{tourId:int}")]
-        public async Task<ActionResult<TourDto>> GetTour(int tourId)
+        [HttpGet("singletour/{tourId}")]
+        public async Task<ActionResult<TourDto>> GetTour(string tourId)
         {
-            //var result = _tourService.Get(tourId);
-            //return CreateResponse(result);
             using (HttpClient client = new HttpClient())
             {
                 string url = "http://localhost:8081/api/tours/"+tourId;
@@ -108,10 +106,42 @@ namespace Explorer.API.Controllers.Author
             }
         }
 
-        [HttpPut("updatetour")]
-        public async Task<ActionResult<TourDto>> Update([FromBody] TourDto tourDto)
+        [HttpPut("archiveTour/{tourId}")]
+        public async Task<ActionResult<TourStringDto>> ArchiveTour(string tourId)
         {
+            using (HttpClient client = new HttpClient())
+            {
+                try
+                {
+                    string url = "http://localhost:8081/api/tours/archive/" + tourId;
+                    TourStringDto prenos = new TourStringDto();
+                    prenos.Id = tourId;
+                    string jsonString = JsonConvert.SerializeObject(prenos);
+                    var response = await client.PutAsJsonAsync(url, prenos);
 
+                    if (response.IsSuccessStatusCode)
+                    {
+                        string responseContent = await response.Content.ReadAsStringAsync();
+                        Console.WriteLine("Response from server: " + responseContent);
+                        return CreateResponse(Result.Ok(response));
+                    }
+                    else
+                    {
+                        Console.WriteLine("Error: " + response.StatusCode);
+                        return CreateResponse(Result.Fail("An error occurred"));
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Exception: " + ex.Message);
+                    return CreateResponse(Result.Fail("An error occurred").WithError(ex.Message));
+                }
+            }
+        }
+
+        [HttpPut("updatetour")]
+        public async Task<ActionResult<TourStringDto>> Update([FromBody] TourStringDto tourDto)
+        {
             using (HttpClient client = new HttpClient())
             {
                 try
@@ -138,8 +168,6 @@ namespace Explorer.API.Controllers.Author
                     return CreateResponse(Result.Fail("An error occurred").WithError(ex.Message));
                 }
             }
-
-
         }
 
         [HttpPost]
@@ -246,13 +274,13 @@ namespace Explorer.API.Controllers.Author
             }
         }
 
-        [HttpPut("archiveTour")]
-        public ActionResult<TourDto> ArchiveTour([FromBody] int tourId)
-        {
-            _tourService.ArchiveTour(tourId, DateTime.Now.ToUniversalTime());
-            var tour = _tourService.Get(tourId);
-            return CreateResponse(tour);
-        }
+        //[HttpPut("archiveTour")]
+        //public ActionResult<TourDto> ArchiveTour([FromBody] int tourId)
+        //{
+        //    _tourService.ArchiveTour(tourId, DateTime.Now.ToUniversalTime());
+        //    var tour = _tourService.Get(tourId);
+        //    return CreateResponse(tour);
+        //}
 
         [HttpGet("shopping/{userId:int}")]
         public ActionResult<PagedResult<TourPreviewDto>> GetAllAvailableTours([FromQuery] int page, [FromQuery] int pageSize, int userId)
