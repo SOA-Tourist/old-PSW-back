@@ -76,10 +76,36 @@ namespace Explorer.API.Controllers.Author
         }
 
         [HttpGet("singletour/{tourId:int}")]
-        public ActionResult<TourDto> GetTour(int tourId)
+        public async Task<ActionResult<TourDto>> GetTour(int tourId)
         {
-            var result = _tourService.Get(tourId);
-            return CreateResponse(result);
+            //var result = _tourService.Get(tourId);
+            //return CreateResponse(result);
+            using (HttpClient client = new HttpClient())
+            {
+                string url = "http://localhost:8081/api/tours/"+tourId;
+                try
+                {
+                    var response = await client.GetAsync(url);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+
+                        var responseData = await response.Content.ReadFromJsonAsync<TourStringDto>();
+                        //var pagedResult = new PagedResult<TourStringDto>(responseData, responseData.Count);
+
+                        return Ok(responseData);
+
+                    }
+                    else
+                    {
+                        return StatusCode((int)response.StatusCode, "Error calling the Spring microservice");
+                    }
+                }
+                catch (HttpRequestException ex)
+                {
+                    return StatusCode(500, $"Request to microservice failed: {ex.Message}");
+                }
+            }
         }
 
         [HttpPut("updatetour")]
