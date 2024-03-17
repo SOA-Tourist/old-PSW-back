@@ -75,11 +75,9 @@ namespace Explorer.API.Controllers.Author
             return CreateResponse(result);
         }
 
-        [HttpGet("singletour/{tourId:int}")]
-        public async Task<ActionResult<TourDto>> GetTour(int tourId)
+        [HttpGet("singletour/{tourId}")]
+        public async Task<ActionResult<TourDto>> GetTour(string tourId)
         {
-            //var result = _tourService.Get(tourId);
-            //return CreateResponse(result);
             using (HttpClient client = new HttpClient())
             {
                 string url = "http://localhost:8081/api/tours/"+tourId;
@@ -109,9 +107,8 @@ namespace Explorer.API.Controllers.Author
         }
 
         [HttpPut("updatetour")]
-        public async Task<ActionResult<TourDto>> Update([FromBody] TourDto tourDto)
+        public async Task<ActionResult<TourStringDto>> Update([FromBody] TourStringDto tourDto)
         {
-
             using (HttpClient client = new HttpClient())
             {
                 try
@@ -138,8 +135,6 @@ namespace Explorer.API.Controllers.Author
                     return CreateResponse(Result.Fail("An error occurred").WithError(ex.Message));
                 }
             }
-
-
         }
 
         [HttpPost]
