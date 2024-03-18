@@ -171,7 +171,7 @@ namespace Explorer.API.Controllers.Author
         }
 
         [HttpPost]
-        public async Task<ActionResult<TourDto>> Create([FromBody] TourDto tour)
+        public async Task<ActionResult<TourStringDto>> Create([FromBody] TourDto tour)
         {
             using (HttpClient client = new HttpClient())
             {
@@ -185,7 +185,7 @@ namespace Explorer.API.Controllers.Author
                     {
                         string responseContent = await response.Content.ReadAsStringAsync();
                         Console.WriteLine("Response from server: " + responseContent);
-                        return CreateResponse(Result.Ok(response));
+                        return CreateResponse(Result.Ok(responseContent));
                     }
                     else
                     {
