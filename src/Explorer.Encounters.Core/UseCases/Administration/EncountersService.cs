@@ -27,7 +27,7 @@ namespace Explorer.Encounters.Core.UseCases.Administration
             _executionRepository = executionRepository;
             _mapper = mapper;
         }
-
+        //Ovo treba da prekucam u javu
         public Result<EncounterStatisticsDto> GetStatistics(long encounterId)
         {
             var encounter = _repository.GetById(encounterId);
