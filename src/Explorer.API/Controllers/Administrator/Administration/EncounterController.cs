@@ -97,11 +97,41 @@ namespace Explorer.API.Controllers.Administrator.Administration
         }
         //OVO CU SAD DA MENJAM
 
+        //OVAK
+
         [HttpGet("checkpoint")]
-        public ActionResult<EncounterDto> GetAllForCheckpoint()
+        public async Task<ActionResult<EncounterStringDto>> GetAllForCheckpoint()
         {
-            var result = _encountersService.GetAllCheckpointRelated();
-            return CreateResponse(result);
+            //var result = _encountersService.GetAllCheckpointRelated();
+            //return CreateResponse(result);
+
+            using (HttpClient client = new HttpClient())
+            {
+                string url = "http://localhost:8083/api/encounters";
+                try
+                {
+                    var response = await client.GetAsync(url);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+
+                        var responseData = await response.Content.ReadFromJsonAsync<List<EncounterStringDto>>();
+                        var pagedResult = new PagedResult<EncounterStringDto>(responseData, responseData.Count);
+
+                        return Ok(pagedResult);
+
+
+                    }
+                    else
+                    {
+                        return StatusCode((int)response.StatusCode, "Error calling the Spring microservice");
+                    }
+                }
+                catch (HttpRequestException ex)
+                {
+                    return StatusCode(500, $"Request to microservice failed: {ex.Message}");
+                }
+            }
         }
 
         [HttpGet("checkpoint/{checkpointId:long}")]

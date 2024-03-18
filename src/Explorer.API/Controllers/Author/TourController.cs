@@ -201,13 +201,44 @@ namespace Explorer.API.Controllers.Author
             }
         }
 
-
         [HttpPost("addCheckpoint")]
-        public ActionResult<CheckpointDto> AddCheckpointOnTour([FromBody] CheckpointDto checkpointDto)
+        public async Task<ActionResult<CheckpointTourStringDto>> AddCheckpointOnTour([FromBody] CheckpointTourStringDto checkpoint)
         {
-            var result = _checkpointService.Create(checkpointDto);
-            return CreateResponse(result);
+            using (HttpClient client = new HttpClient())
+            {
+                try
+                {
+                    string url = "http://localhost:8081/api/checkpoints";
+                    string jsonString = JsonConvert.SerializeObject(checkpoint);
+                    var response = await client.PostAsJsonAsync(url, checkpoint);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        string responseContent = await response.Content.ReadAsStringAsync();
+                        Console.WriteLine("Response from server: " + responseContent);
+                        return CreateResponse(Result.Ok(response));
+                    }
+                    else
+                    {
+                        Console.WriteLine("Error: " + response.StatusCode);
+                        return CreateResponse(Result.Fail("An error occurred"));
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Exception: " + ex.Message);
+                    return CreateResponse(Result.Fail("An error occurred").WithError(ex.Message));
+                }
+            }
         }
+
+
+        //[HttpPost("addCheckpoint")]
+        //public ActionResult<CheckpointDto> AddCheckpointOnTour([FromBody] CheckpointDto checkpointDto)
+        //{
+        //    var result = _checkpointService.Create(checkpointDto);
+        //    return CreateResponse(result);
+        //}
 
         [HttpPatch("addCheckpoint/{tourId:int}")]
 
