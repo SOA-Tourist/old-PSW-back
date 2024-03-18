@@ -1,4 +1,5 @@
-﻿using Explorer.Encounters.API.Dtos;
+﻿using Explorer.BuildingBlocks.Core.UseCases;
+using Explorer.Encounters.API.Dtos;
 using Explorer.Encounters.API.Public;
 using Explorer.Encounters.Core.UseCases.Administration;
 using Explorer.Stakeholders.Infrastructure.Authentication;
@@ -28,12 +29,38 @@ namespace Explorer.API.Controllers.Tourist.Execution
             return CreateResponse(result);
         }
 
+        //OVO MENJAM
         [HttpGet("allEncounters")]
-        public ActionResult<EncounterDto> GetAllActive()
+        public async Task<ActionResult<EncounterStringDto>> GetAllActive()
         {
-            var result = _encounterService.GetAllActive();
-            return CreateResponse(result);
+            //   var result = _encounterService.GetAllActive();
+            //    return CreateResponse(result);
+            using (HttpClient client = new HttpClient())
+            {
+                string url = "http://localhost:8083/api/encounters/activate";
+                try
+                {
+                    var response = await client.GetAsync(url);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var responseData = await response.Content.ReadFromJsonAsync<List<EncounterStringDto>>();
+                        var pagedResult = new PagedResult<EncounterStringDto>(responseData, responseData.Count);
+
+                        return Ok(pagedResult);
+                    }
+                    else
+                    {
+                        return StatusCode((int)response.StatusCode, "Error calling the Spring microservice");
+                    }
+                }
+                catch (HttpRequestException ex)
+                {
+                    return StatusCode(500, $"Request to microservice failed: {ex.Message}");
+                }
+            }
         }
+        //OVO MENJAM
 
         [HttpPost("{encounterId:long}")]
         public ActionResult<EncounterExecutionDto> Activate(long encounterId, [FromBody] EncounterCoordinateDto currentPosition)
