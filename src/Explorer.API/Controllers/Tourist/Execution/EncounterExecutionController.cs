@@ -4,8 +4,12 @@ using Explorer.Encounters.API.Public;
 using Explorer.Encounters.Core.UseCases.Administration;
 using Explorer.Stakeholders.Infrastructure.Authentication;
 using Explorer.Tours.API.Dtos.Execution;
+using Explorer.Tours.Core.Domain.Tours;
+using FluentResults;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
+using System.Text;
 
 namespace Explorer.API.Controllers.Tourist.Execution
 {
@@ -62,12 +66,41 @@ namespace Explorer.API.Controllers.Tourist.Execution
         }
         //OVO MENJAM
 
-        [HttpPost("{encounterId:long}")]
-        public ActionResult<EncounterExecutionDto> Activate(long encounterId, [FromBody] EncounterCoordinateDto currentPosition)
+
+        //OVO MENJAM
+        [HttpPost("{encounterId}")]
+        public async Task<ActionResult<EncounterExecutionStringDto>> Activate(string encounterId, [FromBody] EncounterCoordinateDto currentPosition)
         {
-            var result = _encounterExecutionService.Activate(encounterId, ClaimsPrincipalExtensions.PersonId(User), currentPosition);
-            return CreateResponse(result);
+             //   var result = _encounterExecutionService.Activate(encounterId, ClaimsPrincipalExtensions.PersonId(User), currentPosition);
+            //    return CreateResponse(result);
+            using (HttpClient client = new HttpClient())
+            {
+                try
+                {
+                    string url = "http://localhost:8083/api/encounter/executions/" + encounterId;
+                    string jsonString = JsonConvert.SerializeObject(currentPosition);
+                    var response = await client.PostAsJsonAsync(url, currentPosition);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        string responseContent = await response.Content.ReadAsStringAsync();
+                        Console.WriteLine("Response from server: " + responseContent);
+                        return CreateResponse(Result.Ok(responseContent));
+                    }
+                    else
+                    {
+                        Console.WriteLine("Error: " + response.StatusCode);
+                        return CreateResponse(Result.Fail("An error occurred"));
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Exception: " + ex.Message);
+                    return CreateResponse(Result.Fail("An error occurred").WithError(ex.Message));
+                }
+            }
         }
+        //OVO MENJAM
 
         [HttpPatch("{executionId:long}")]
         public ActionResult<EncounterExecutionDto> CheckIfCompleted(long executionId, [FromBody] EncounterCoordinateDto currentPosition)
@@ -76,18 +109,75 @@ namespace Explorer.API.Controllers.Tourist.Execution
             return CreateResponse(result);
         }
 
-        [HttpPatch("completeMiscEncounter")]
-        public ActionResult<EncounterExecutionDto> CompleteMiscEnctounter([FromBody] long executionId)
+        //OVO MENJAM
+        [HttpPatch("completeMiscEncounter/{executionId}")]
+        public async Task<ActionResult<EncounterExecutionDto>> CompleteMiscEnctounter(string executionId)
         {
-            var result = _encounterExecutionService.CompleteMiscEncounter(executionId, ClaimsPrincipalExtensions.PersonId(User));
-            return CreateResponse(result);
-        }
+        //    var result = _encounterExecutionService.CompleteMiscEncounter(executionId, ClaimsPrincipalExtensions.PersonId(User));
+        //    return CreateResponse(result);
+            var httpClient = new HttpClient();
+            var resourceUrl = "http://localhost:8083/api/encounter/executions/completeMiscEncounter/" + executionId; // Replace with your Spring Boot resource URL
 
-        [HttpPatch("abandon")]
-        public ActionResult<EncounterExecutionDto> Abandon([FromBody] long executionId)
-        {
-            var result = _encounterExecutionService.Abandon(executionId, ClaimsPrincipalExtensions.PersonId(User));
-            return CreateResponse(result);
+            var myResource = new
+            {
+                // Properties to update
+                PropertyName = "New Value"
+            };
+
+            var json = JsonConvert.SerializeObject(myResource);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            // Adding a header if needed, for example, Authorization
+            // httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", "your_token");
+
+            var response = await httpClient.PatchAsync(resourceUrl, content);
+
+            if (response.IsSuccessStatusCode)
+            {
+                Console.WriteLine("Resource updated successfully.");
+            }
+            else
+            {
+                Console.WriteLine($"Failed to update resource. Status code: {response.StatusCode}");
+            }
+            return CreateResponse(Result.Ok(content));
         }
+        //OVO MENJAM
+
+        //OVO MENJAM
+        [HttpPatch("abandon/{executionId}")]
+        public async Task<ActionResult<EncounterExecutionDto>> Abandon(string executionId) //([FromBody] string executionId)
+        {
+           // var result = _encounterExecutionService.Abandon(executionId, ClaimsPrincipalExtensions.PersonId(User));
+           // return CreateResponse(result);
+
+            var httpClient = new HttpClient();
+            var resourceUrl = "http://localhost:8083/api/encounter/executions/" + executionId; // Replace with your Spring Boot resource URL
+
+            var myResource = new
+            {
+                // Properties to update
+                PropertyName = "New Value"
+            };
+
+            var json = JsonConvert.SerializeObject(myResource);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            // Adding a header if needed, for example, Authorization
+            // httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", "your_token");
+
+            var response = await httpClient.PatchAsync(resourceUrl, content);
+
+            if (response.IsSuccessStatusCode)
+            {
+                Console.WriteLine("Resource updated successfully.");
+            }
+            else
+            {
+                Console.WriteLine($"Failed to update resource. Status code: {response.StatusCode}");
+            }
+            return CreateResponse(Result.Ok(content));
+        }
+        //OVO MENJAM
     }
 }
