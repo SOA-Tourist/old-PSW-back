@@ -202,7 +202,7 @@ namespace Explorer.API.Controllers.Author
         }
 
         [HttpPost("addCheckpoint")]
-        public async Task<ActionResult<CheckpointTourStringDto>> AddCheckpointOnTour([FromBody] CheckpointTourStringDto checkpoint)
+        public async Task<ActionResult<CheckpointStringDto>> AddCheckpointOnTour([FromBody] CheckpointTourStringDto checkpoint)
         {
             using (HttpClient client = new HttpClient())
             {
