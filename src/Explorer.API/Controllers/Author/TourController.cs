@@ -171,7 +171,7 @@ namespace Explorer.API.Controllers.Author
         }
 
         [HttpPost]
-        public async Task<ActionResult<TourDto>> Create([FromBody] TourDto tour)
+        public async Task<ActionResult<TourStringDto>> Create([FromBody] TourDto tour)
         {
             using (HttpClient client = new HttpClient())
             {
@@ -185,7 +185,7 @@ namespace Explorer.API.Controllers.Author
                     {
                         string responseContent = await response.Content.ReadAsStringAsync();
                         Console.WriteLine("Response from server: " + responseContent);
-                        return CreateResponse(Result.Ok(response));
+                        return CreateResponse(Result.Ok(responseContent));
                     }
                     else
                     {
@@ -202,7 +202,7 @@ namespace Explorer.API.Controllers.Author
         }
 
         [HttpPost("addCheckpoint")]
-        public async Task<ActionResult<CheckpointTourStringDto>> AddCheckpointOnTour([FromBody] CheckpointTourStringDto checkpoint)
+        public async Task<ActionResult<CheckpointStringDto>> AddCheckpointOnTour([FromBody] CheckpointTourStringDto checkpoint)
         {
             using (HttpClient client = new HttpClient())
             {
@@ -247,26 +247,113 @@ namespace Explorer.API.Controllers.Author
             _checkpointService.Create(checkpointDto);
         }
 
-        [HttpGet("getCheckpoints/{tourId:int}")]
+        //ovo treba
+        //[HttpGet("getCheckpoints/{tourId:int}")]
 
-        public ActionResult<PagedResult<CheckpointDto>> GetAllByTourId([FromQuery] int page, [FromQuery] int pageSize, int tourId)
+        //public ActionResult<PagedResult<CheckpointDto>> GetAllByTourId([FromQuery] int page, [FromQuery] int pageSize, int tourId)
+        //{
+        //    var result = _checkpointService.GetAllByTourId(page, pageSize, tourId);
+        //    return CreateResponse(result);
+        //}
+
+        [HttpGet("toursCheckpoints")]
+        [AllowAnonymous]
+        public async Task<ActionResult<PagedResult<CheckpointStringDto>>> GetAllToursCheckpoints([FromQuery] int tourId, [FromQuery] int page, [FromQuery] int pageSize)
         {
-            var result = _checkpointService.GetAllByTourId(page, pageSize, tourId);
-            return CreateResponse(result);
+            using (HttpClient client = new HttpClient())
+            {
+                string url = "http://localhost:8081/api/checkpoints/for_tour/" + tourId;
+                try
+                {
+                    var response = await client.GetAsync(url);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+
+                        var responseData = await response.Content.ReadFromJsonAsync<List<CheckpointStringDto>>();
+                        var pagedResult = new PagedResult<CheckpointStringDto>(responseData, responseData.Count);
+
+                        return Ok(pagedResult);
+
+
+                    }
+                    else
+                    {
+                        return StatusCode((int)response.StatusCode, "Error calling the Spring microservice");
+                    }
+                }
+                catch (HttpRequestException ex)
+                {
+                    return StatusCode(500, $"Request to microservice failed: {ex.Message}");
+                }
+            }
         }
+
+        //ovo treba
+        //[HttpPut("updateCheckpoint")]
+        //public ActionResult<CheckpointDto> UpdateCheckpoint([FromBody] CheckpointDto checkpointDto)
+        //{
+        //    var result = _checkpointService.Update(checkpointDto);
+        //    return CreateResponse(result);
+        //}
 
         [HttpPut("updateCheckpoint")]
-        public ActionResult<CheckpointDto> UpdateCheckpoint([FromBody] CheckpointDto checkpointDto)
+        public async Task<ActionResult<CheckpointStringDto>> Update([FromBody] CheckpointStringDto checkpointDto)
         {
-            var result = _checkpointService.Update(checkpointDto);
-            return CreateResponse(result);
+            using (HttpClient client = new HttpClient())
+            {
+                try
+                {
+                    string url = "http://localhost:8081/api/checkpoints/" + checkpointDto.Id;
+                    string jsonString = JsonConvert.SerializeObject(checkpointDto);
+                    var response = await client.PutAsJsonAsync(url, checkpointDto);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        string responseContent = await response.Content.ReadAsStringAsync();
+                        Console.WriteLine("Response from server: " + responseContent);
+                        return CreateResponse(Result.Ok(response));
+                    }
+                    else
+                    {
+                        Console.WriteLine("Error: " + response.StatusCode);
+                        return CreateResponse(Result.Fail("An error occurred"));
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Exception: " + ex.Message);
+                    return CreateResponse(Result.Fail("An error occurred").WithError(ex.Message));
+                }
+            }
         }
 
-        [HttpDelete("deleteCheckpoint/{checkpointId:int}")]
-        public ActionResult<CheckpointDto> DeleteCheckpoint(int checkpointId)
+        //ovo treba
+        //[HttpDelete("deleteCheckpoint/{checkpointId:int}")]
+        //public ActionResult<CheckpointDto> DeleteCheckpoint(int checkpointId)
+        //{
+        //    var result = _checkpointService.Delete(checkpointId);
+        //    return CreateResponse(result);
+        //}
+
+        [HttpDelete("deleteCheckpoint/{id}")]
+        public async void Delete(string id)
         {
-            var result = _checkpointService.Delete(checkpointId);
-            return CreateResponse(result);
+            using (HttpClient client = new HttpClient())
+            {
+                string url = "http://localhost:8081/api/checkpoints/" + id;
+                HttpResponseMessage response = await client.DeleteAsync(url);
+
+                // Check if the request was successful
+                if (response.IsSuccessStatusCode)
+                {
+                    Console.WriteLine("DELETE request successful");
+                }
+                else
+                {
+                    Console.WriteLine($"DELETE request failed with status code {response.StatusCode}");
+                }
+            }
         }
 
         [HttpGet("tourist/checkpoints")]
@@ -290,6 +377,7 @@ namespace Explorer.API.Controllers.Author
             return CreateResponse(result);
         }
 
+        //ovo treba
         [HttpPut("publishTour")]
         public ActionResult<TourDto> PublishTour([FromBody] int tourId)
         {
