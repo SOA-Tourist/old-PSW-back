@@ -87,12 +87,8 @@ namespace Explorer.API.Controllers.Author
 
                     if (response.IsSuccessStatusCode)
                     {
-
                         var responseData = await response.Content.ReadFromJsonAsync<TourStringDto>();
-                        //var pagedResult = new PagedResult<TourStringDto>(responseData, responseData.Count);
-
                         return Ok(responseData);
-
                     }
                     else
                     {
@@ -114,10 +110,10 @@ namespace Explorer.API.Controllers.Author
                 try
                 {
                     string url = "http://localhost:8081/api/tours/archive/" + tourId;
-                    TourStringDto prenos = new TourStringDto();
-                    prenos.Id = tourId;
-                    string jsonString = JsonConvert.SerializeObject(prenos);
-                    var response = await client.PutAsJsonAsync(url, prenos);
+                    TourStringDto temp = new TourStringDto();
+                    temp.Id = tourId;
+                    string jsonString = JsonConvert.SerializeObject(temp);
+                    var response = await client.PutAsJsonAsync(url, temp);
 
                     if (response.IsSuccessStatusCode)
                     {
@@ -232,29 +228,12 @@ namespace Explorer.API.Controllers.Author
             }
         }
 
-
-        //[HttpPost("addCheckpoint")]
-        //public ActionResult<CheckpointDto> AddCheckpointOnTour([FromBody] CheckpointDto checkpointDto)
-        //{
-        //    var result = _checkpointService.Create(checkpointDto);
-        //    return CreateResponse(result);
-        //}
-
         [HttpPatch("addCheckpoint/{tourId:int}")]
 
         public void AddCheckPointOnTour(int? tourId, [FromBody] CheckpointDto checkpointDto)
         {
             _checkpointService.Create(checkpointDto);
         }
-
-        //ovo treba
-        //[HttpGet("getCheckpoints/{tourId:int}")]
-
-        //public ActionResult<PagedResult<CheckpointDto>> GetAllByTourId([FromQuery] int page, [FromQuery] int pageSize, int tourId)
-        //{
-        //    var result = _checkpointService.GetAllByTourId(page, pageSize, tourId);
-        //    return CreateResponse(result);
-        //}
 
         [HttpGet("toursCheckpoints")]
         [AllowAnonymous]
@@ -274,8 +253,6 @@ namespace Explorer.API.Controllers.Author
                         var pagedResult = new PagedResult<CheckpointStringDto>(responseData, responseData.Count);
 
                         return Ok(pagedResult);
-
-
                     }
                     else
                     {
@@ -288,14 +265,6 @@ namespace Explorer.API.Controllers.Author
                 }
             }
         }
-
-        //ovo treba
-        //[HttpPut("updateCheckpoint")]
-        //public ActionResult<CheckpointDto> UpdateCheckpoint([FromBody] CheckpointDto checkpointDto)
-        //{
-        //    var result = _checkpointService.Update(checkpointDto);
-        //    return CreateResponse(result);
-        //}
 
         [HttpPut("updateCheckpoint")]
         public async Task<ActionResult<CheckpointStringDto>> Update([FromBody] CheckpointStringDto checkpointDto)
@@ -328,13 +297,6 @@ namespace Explorer.API.Controllers.Author
             }
         }
 
-        //ovo treba
-        //[HttpDelete("deleteCheckpoint/{checkpointId:int}")]
-        //public ActionResult<CheckpointDto> DeleteCheckpoint(int checkpointId)
-        //{
-        //    var result = _checkpointService.Delete(checkpointId);
-        //    return CreateResponse(result);
-        //}
 
         [HttpDelete("deleteCheckpoint/{id}")]
         public async void Delete(string id)
@@ -344,7 +306,6 @@ namespace Explorer.API.Controllers.Author
                 string url = "http://localhost:8081/api/checkpoints/" + id;
                 HttpResponseMessage response = await client.DeleteAsync(url);
 
-                // Check if the request was successful
                 if (response.IsSuccessStatusCode)
                 {
                     Console.WriteLine("DELETE request successful");
@@ -377,21 +338,7 @@ namespace Explorer.API.Controllers.Author
             return CreateResponse(result);
         }
 
-        //ovo treba
-        //[HttpPut("publishTour")]
-        //public ActionResult<TourDto> PublishTour([FromBody] int tourId)
-        //{
-        //    if (_checkpointService.CheckPointsAreValidForPublish(0, 0, tourId))
-        //    {
-        //        _tourService.PublishTour(tourId, DateTime.Now.ToUniversalTime());
-        //        var tour = _tourService.Get(tourId);
-        //        return CreateResponse(tour);
-        //    }
-        //    else
-        //    {
-        //        throw new Exception("Tour doesn't have enough checkpoints to be published ");
-        //    }
-        //}
+
 
         [HttpPut("publishTour/{tourId}")]
         public async Task<ActionResult<TourStringDto>> PublishTour(string tourId)
@@ -401,10 +348,10 @@ namespace Explorer.API.Controllers.Author
                 try
                 {
                     string url = "http://localhost:8081/api/tours/publish/" + tourId;
-                    TourStringDto prenos = new TourStringDto();
-                    prenos.Id = tourId;
-                    string jsonString = JsonConvert.SerializeObject(prenos);
-                    var response = await client.PutAsJsonAsync(url, prenos);
+                    TourStringDto temp = new TourStringDto();
+                    temp.Id = tourId;
+                    string jsonString = JsonConvert.SerializeObject(temp);
+                    var response = await client.PutAsJsonAsync(url, temp);
 
                     if (response.IsSuccessStatusCode)
                     {
@@ -425,14 +372,6 @@ namespace Explorer.API.Controllers.Author
                 }
             }
         }
-
-        //[HttpPut("archiveTour")]
-        //public ActionResult<TourDto> ArchiveTour([FromBody] int tourId)
-        //{
-        //    _tourService.ArchiveTour(tourId, DateTime.Now.ToUniversalTime());
-        //    var tour = _tourService.Get(tourId);
-        //    return CreateResponse(tour);
-        //}
 
         [HttpGet("shopping/{userId:int}")]
         public ActionResult<PagedResult<TourPreviewDto>> GetAllAvailableTours([FromQuery] int page, [FromQuery] int pageSize, int userId)
