@@ -247,6 +247,7 @@ namespace Explorer.API.Controllers.Author
             _checkpointService.Create(checkpointDto);
         }
 
+        //ovo treba
         [HttpGet("getCheckpoints/{tourId:int}")]
 
         public ActionResult<PagedResult<CheckpointDto>> GetAllByTourId([FromQuery] int page, [FromQuery] int pageSize, int tourId)
@@ -255,6 +256,7 @@ namespace Explorer.API.Controllers.Author
             return CreateResponse(result);
         }
 
+        //ovo treba
         [HttpPut("updateCheckpoint")]
         public ActionResult<CheckpointDto> UpdateCheckpoint([FromBody] CheckpointDto checkpointDto)
         {
@@ -262,6 +264,7 @@ namespace Explorer.API.Controllers.Author
             return CreateResponse(result);
         }
 
+        //ovo treba
         [HttpDelete("deleteCheckpoint/{checkpointId:int}")]
         public ActionResult<CheckpointDto> DeleteCheckpoint(int checkpointId)
         {
@@ -290,6 +293,7 @@ namespace Explorer.API.Controllers.Author
             return CreateResponse(result);
         }
 
+        //ovo treba
         [HttpPut("publishTour")]
         public ActionResult<TourDto> PublishTour([FromBody] int tourId)
         {
