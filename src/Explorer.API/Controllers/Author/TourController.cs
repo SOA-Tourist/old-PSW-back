@@ -378,18 +378,51 @@ namespace Explorer.API.Controllers.Author
         }
 
         //ovo treba
-        [HttpPut("publishTour")]
-        public ActionResult<TourDto> PublishTour([FromBody] int tourId)
+        //[HttpPut("publishTour")]
+        //public ActionResult<TourDto> PublishTour([FromBody] int tourId)
+        //{
+        //    if (_checkpointService.CheckPointsAreValidForPublish(0, 0, tourId))
+        //    {
+        //        _tourService.PublishTour(tourId, DateTime.Now.ToUniversalTime());
+        //        var tour = _tourService.Get(tourId);
+        //        return CreateResponse(tour);
+        //    }
+        //    else
+        //    {
+        //        throw new Exception("Tour doesn't have enough checkpoints to be published ");
+        //    }
+        //}
+
+        [HttpPut("publishTour/{tourId}")]
+        public async Task<ActionResult<TourStringDto>> PublishTour(string tourId)
         {
-            if (_checkpointService.CheckPointsAreValidForPublish(0, 0, tourId))
+            using (HttpClient client = new HttpClient())
             {
-                _tourService.PublishTour(tourId, DateTime.Now.ToUniversalTime());
-                var tour = _tourService.Get(tourId);
-                return CreateResponse(tour);
-            }
-            else
-            {
-                throw new Exception("Tour doesn't have enough checkpoints to be published ");
+                try
+                {
+                    string url = "http://localhost:8081/api/tours/publish/" + tourId;
+                    TourStringDto prenos = new TourStringDto();
+                    prenos.Id = tourId;
+                    string jsonString = JsonConvert.SerializeObject(prenos);
+                    var response = await client.PutAsJsonAsync(url, prenos);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        string responseContent = await response.Content.ReadAsStringAsync();
+                        Console.WriteLine("Response from server: " + responseContent);
+                        return CreateResponse(Result.Ok(response));
+                    }
+                    else
+                    {
+                        Console.WriteLine("Error: " + response.StatusCode);
+                        return CreateResponse(Result.Fail("An error occurred"));
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Exception: " + ex.Message);
+                    return CreateResponse(Result.Fail("An error occurred").WithError(ex.Message));
+                }
             }
         }
 
