@@ -258,7 +258,7 @@ namespace Explorer.API.Controllers.Author
 
         [HttpGet("toursCheckpoints")]
         [AllowAnonymous]
-        public async Task<ActionResult<PagedResult<CheckpointStringDto>>> GetAllToursCheckpoints([FromQuery] int tourId, [FromQuery] int page, [FromQuery] int pageSize)
+        public async Task<ActionResult<PagedResult<CheckpointStringDto>>> GetAllToursCheckpoints([FromQuery] string tourId, [FromQuery] int page, [FromQuery] int pageSize)
         {
             using (HttpClient client = new HttpClient())
             {
